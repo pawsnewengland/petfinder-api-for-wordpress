@@ -5,7 +5,7 @@
 	Plugin Name: Petfinder API for WordPress
 	Plugin URI: https://github.com/cferdinandi/petfinder-api-for-wordpress
 	Description: A collection of functions to help you display Petfinder listings on your WordPress site
-	Version: 4.3
+	Version: 5.0
 	Author: Chris Ferdinandi
 	Author URI: http://gomakethings.com
 	License: MIT
