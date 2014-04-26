@@ -5,7 +5,7 @@
 	Plugin Name: Petfinder API for WordPress
 	Plugin URI: https://github.com/cferdinandi/petfinder-api-for-wordpress
 	Description: A collection of functions to help you display Petfinder listings on your WordPress site
-	Version: 4.3
+	Version: 5.0
 	Author: Chris Ferdinandi
 	Author URI: http://gomakethings.com
 	License: MIT
@@ -26,12 +26,12 @@
 	Get your shelter info from Petfinder.
  * ============================================================= */
 
-function get_petfinder_data($api_key, $shelter_id, $count, $pet = '') {
+function get_petfinder_data($api_key, $shelter_id, $count, $pet = '', $offset = 0) {
 
 	// If no specific pet is specified
 	if ( $pet == '' ) {
 		// Create request URL for all pets from the shelter
-		$request_url = 'http://api.petfinder.com/shelter.getPets?key=' . $api_key . '&count=' . $count . '&id=' . $shelter_id . '&status=A&output=full';
+		$request_url = 'http://api.petfinder.com/shelter.getPets?key=' . $api_key . '&count=' . $count . '&id=' . $shelter_id . '&offset=' . $offset . '&status=A&output=full';
 	}
 
 	// If a specific pet IS specified
@@ -294,7 +294,7 @@ function pet_value_condensed($pet_value) {
 	List of available breeds.
  * ============================================================= */
 
-function get_breed_list($pets) {
+function get_breed_list($petfinder_data) {
 
 	// Define Variables
 	$breeds = '';
@@ -303,9 +303,12 @@ function get_breed_list($pets) {
 	$breed_list_2 = '';
 
 	// Get a list of breeds for each pet
-	foreach( $pets as $pet ) {
-		foreach( $pet->breeds->breed as $pet_breed ) {
-			$breeds .= $pet_breed . "|";
+	foreach ( $petfinder_data as $key => $data ) {
+		$pets = $data->pets->pet;
+		foreach( $pets as $pet ) {
+			foreach( $pet->breeds->breed as $pet_breed ) {
+				$breeds .= $pet_breed . "|";
+			}
 		}
 	}
 
@@ -377,15 +380,18 @@ function get_breed_list($pets) {
 	List of available size of pets.
  * ============================================================= */
 
-function get_size_list($pets) {
+function get_size_list($petfinder_data) {
 
 	// Define Variables
 	$sizes = '';
 	$size_list = '';
 
 	// Create a list of pet sizes
-	foreach( $pets as $pet ) {
-		$sizes .= get_pet_size($pet->size) . "|";
+	foreach ( $petfinder_data as $key => $data ) {
+		$pets = $data->pets->pet;
+		foreach( $pets as $pet ) {
+			$sizes .= get_pet_size($pet->size) . "|";
+		}
 	}
 
 	// Remove duplicates, convert into an array, alphabetize and reverse list order
@@ -427,15 +433,17 @@ function get_size_list($pets) {
 	List of available pet ages.
  * ============================================================= */
 
-function get_age_list($pets) {
+function get_age_list($petfinder_data) {
 
 	// Define Variables
 	$ages = '';
 	$age_list = '';
 
-	// Create a list of pet ages
-	foreach( $pets as $pet ) {
-		$ages .= get_pet_age($pet->age) . "|";
+	foreach ( $petfinder_data as $key => $data ) {
+		$pets = $data->pets->pet;
+		foreach( $pets as $pet ) {
+			$ages .= get_pet_age($pet->age) . "|";
+		}
 	}
 
 	// Remove duplicates, convert into an array and reverse list order
@@ -475,15 +483,18 @@ function get_age_list($pets) {
 	List of available pet genders.
  * ============================================================= */
 
-function get_gender_list($pets) {
+function get_gender_list($petfinder_data) {
 
 	// Define Variables
 	$genders = '';
 	$gender_list = '';
 
 	// Create a list available pet genders
-	foreach( $pets as $pet ) {
-		$genders .= get_pet_gender($pet->sex) . "|";
+	foreach ( $petfinder_data as $key => $data ) {
+		$pets = $data->pets->pet;
+		foreach( $pets as $pet ) {
+			$genders .= get_pet_gender($pet->sex) . "|";
+		}
 	}
 
 	// Remove duplicates and convert into an array
@@ -523,18 +534,21 @@ function get_gender_list($pets) {
 	List of dog locations.
  * ============================================================= */
 
-function get_pet_location($pets) {
+function get_pet_location($petfinder_data) {
 
 	// Variables
 	$out_of_state = false;
 	$local = false;
 
 	// Get available pet locations
-	foreach( $pets as $pet ) {
-		if ( stripos( $pet->name, 'local' ) === false ) {
-			$out_of_state = true;
-		} else {
-			$local = true;
+	foreach ( $petfinder_data as $key => $data ) {
+		$pets = $data->pets->pet;
+		foreach( $pets as $pet ) {
+			if ( stripos( $pet->name, 'local' ) === false ) {
+				$out_of_state = true;
+			} else {
+				$local = true;
+			}
 		}
 	}
 
@@ -580,16 +594,19 @@ function get_pet_location($pets) {
 	List of all available special needs and options for pets.
  * ============================================================= */
 
-function get_options_list($pets) {
+function get_options_list($petfinder_data) {
 
 	// Define Variables
 	$options = '';
 	$options_list = '';
 
 	// Create a list of pet options and special needs
-	foreach( $pets as $pet ) {
-		foreach( $pet->options->option as $pet_option ) {
-			$options .= get_pet_option($pet_option) . "|";
+	foreach ( $petfinder_data as $key => $data ) {
+		$pets = $data->pets->pet;
+		foreach( $pets as $pet ) {
+			foreach( $pet->options->option as $pet_option ) {
+				$options .= get_pet_option($pet_option) . "|";
+			}
 		}
 	}
 
@@ -686,62 +703,67 @@ function get_pet_options_list($pet) {
 	Get a list of all available pets.
  * ============================================================= */
 
-function get_all_pets($pets) {
+function get_all_pets($petfinder_data) {
 
 	$pet_list = '';
 
-	foreach( $pets as $pet ) {
+	foreach ( $petfinder_data as $key => $data ) {
+		$pets = $data->pets->pet;
 
-		// Define Variables
-		$pet_name = get_pet_name($pet->name);
-		$pet_size = get_pet_size($pet->size);
-		$pet_age = get_pet_age($pet->age);
-		$pet_gender = get_pet_gender($pet->sex);
-		$pet_photo = get_pet_photos($pet);
-		$pet_url = get_permalink() . '?view=pet-details&id=' . $pet->id . '&pet-name=' . $pet_name . '&qcAC=1';
+		foreach( $pets as $pet ) {
 
-		// Format pet options
-		$pet_options = get_pet_options_list($pet);
-		if ( $pet_options != '' ) {
-			$pet_options = '<div class="text-small text-muted">' . $pet_options . '</div>';
-		}
+			// Define Variables
+			$pet_name = get_pet_name($pet->name);
+			$pet_size = get_pet_size($pet->size);
+			$pet_age = get_pet_age($pet->age);
+			$pet_gender = get_pet_gender($pet->sex);
+			$pet_photo = get_pet_photos($pet);
+			$pet_url = get_permalink() . '?view=pet-details&id=' . $pet->id . '&pet-name=' . $pet_name . '&qcAC=1';
 
-		// Create breed classes
-		$pet_breeds_condensed = '';
-		foreach( $pet->breeds->breed as $breed ) {
-			$pet_breeds_condensed .= pet_value_condensed($breed) . ' ';
-		}
-
-		// Create options classes
-		$pet_options_condensed = '';
-		foreach( $pet->options->option as $option ) {
-			$option = get_pet_option($option);
-			if ( $option != '' ) {
-				$pet_options_condensed .= pet_value_condensed($option) . ' ';
+			// Format pet options
+			$pet_options = get_pet_options_list($pet);
+			if ( $pet_options != '' ) {
+				$pet_options = '<div class="text-small text-muted">' . $pet_options . '</div>';
 			}
+
+			// Create breed classes
+			$pet_breeds_condensed = '';
+			foreach( $pet->breeds->breed as $breed ) {
+				$pet_breeds_condensed .= pet_value_condensed($breed) . ' ';
+			}
+
+			// Create options classes
+			$pet_options_condensed = '';
+			foreach( $pet->options->option as $option ) {
+				$option = get_pet_option($option);
+				if ( $option != '' ) {
+					$pet_options_condensed .= pet_value_condensed($option) . ' ';
+				}
+			}
+
+			// Create location class
+			if ( stripos( $pet->name, 'local' ) === false ) {
+				$pet_location = '';
+				$pet_location_condensed = 'out-of-state';
+			} else {
+				$pet_location = '<div class="text-small text-muted">Local</div>';
+				$pet_location_condensed = 'local';
+			}
+
+
+			// Compile pet info
+			// Add $pet_options and $pet_breeds as classes and meta info
+			$pet_list .=    '<div class="grid-img text-center space-bottom pf ' . pet_value_condensed($pet_age) . ' ' . pet_value_condensed($pet_gender) . ' ' . pet_value_condensed($pet_size) . ' ' . $pet_breeds_condensed . ' ' . $pet_options_condensed . $pet_location_condensed . '" data-right-height-content>
+								<a href="' . $pet_url . '">' .
+									$pet_photo .
+									'<h3 class="no-space-top space-bottom-small">' . $pet_name . '</h3>
+								</a>' .
+								$pet_size . ', ' . $pet_age . ', ' . $pet_gender .
+								$pet_options .
+								$pet_location .
+							'</div>';
+
 		}
-
-		// Create location class
-		if ( stripos( $pet->name, 'local' ) === false ) {
-			$pet_location = '';
-			$pet_location_condensed = 'out-of-state';
-		} else {
-			$pet_location = '<div class="text-small text-muted">Local</div>';
-			$pet_location_condensed = 'local';
-		}
-
-
-		// Compile pet info
-		// Add $pet_options and $pet_breeds as classes and meta info
-		$pet_list .=    '<div class="grid-img text-center space-bottom pf ' . pet_value_condensed($pet_age) . ' ' . pet_value_condensed($pet_gender) . ' ' . pet_value_condensed($pet_size) . ' ' . $pet_breeds_condensed . ' ' . $pet_options_condensed . $pet_location_condensed . '" data-right-height-content>
-							<a href="' . $pet_url . '">' .
-								$pet_photo .
-								'<h3 class="no-space-top space-bottom-small">' . $pet_name . '</h3>
-							</a>' .
-							$pet_size . ', ' . $pet_age . ', ' . $pet_gender .
-							$pet_options .
-							$pet_location .
-						'</div>';
 
 	}
 
@@ -880,7 +902,7 @@ function display_petfinder_list($atts) {
 
 		// Access Petfinder Data
 		$pet_id = $_GET['id'];
-		$petfinder_data = get_petfinder_data($api_key, $shelter_id, $count, $pet_id);
+		$petfinder_data = get_petfinder_data($api_key, $shelter_id, $count, $pet_id, 0);
 
 		// If the API returns without errors
 		if( $petfinder_data->header->status->code == '100' ) {
@@ -906,15 +928,19 @@ function display_petfinder_list($atts) {
 	else {
 
 		// Access Petfinder Data
-		$petfinder_data = get_petfinder_data($api_key, $shelter_id, $count);
+		$divisor = ceil( $count / 25 );
+		$petfinder_data = array();
+		for ( $loop = 0, $offset = 0; $loop < $divisor; $loop++, $offset = $offset + 25 ) {
+			$petfinder_data[] = get_petfinder_data( $api_key, $shelter_id, '25', '', $offset );
+		}
 
 		// If the API returns without errors
-		if( $petfinder_data->header->status->code == '100' ) {
+		if( $petfinder_data[0]->header->status->code == '100' ) {
 
 			// If there is at least one animal
-			if( count( $petfinder_data->pets->pet ) > 0 ) {
+			if( count( $petfinder_data[0]->pets->pet ) > 0 ) {
 
-				$pets = $petfinder_data->pets->pet;
+				$pets = $petfinder_data[2]->pets->pet;
 
 				// Compile information that you want to include
 				$petfinder_list =   '<h1 class="text-center">Our Dogs</h1>
@@ -928,24 +954,24 @@ function display_petfinder_list($atts) {
 									<div class="collapse hide-no-js" id="sort-options">
 
 										<div class="row">' .
-											get_age_list($pets) .
-											get_size_list($pets) .
-											get_gender_list($pets) .
+											get_age_list($petfinder_data) .
+											get_size_list($petfinder_data) .
+											get_gender_list($petfinder_data) .
 										'</div>
 
 										<div class="row">' .
-											get_options_list($pets) .
-											get_pet_location($pets) .
+											get_options_list($petfinder_data) .
+											get_pet_location($petfinder_data) .
 										'</div>
 
 										<div class="row">' .
-											get_breed_list($pets) .
+											get_breed_list($petfinder_data) .
 										'</div>
 
 									</div>
 
 									<div class="row" data-right-height>' .
-										get_all_pets($pets) .
+										get_all_pets($petfinder_data) .
 									'</div>';
 
 			}
