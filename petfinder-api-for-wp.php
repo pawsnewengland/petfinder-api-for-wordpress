@@ -26,12 +26,12 @@
 	Get your shelter info from Petfinder.
  * ============================================================= */
 
-function get_petfinder_data($api_key, $shelter_id, $count, $pet = '') {
+function get_petfinder_data($api_key, $shelter_id, $count, $pet = '', $offset = 0) {
 
 	// If no specific pet is specified
 	if ( $pet == '' ) {
 		// Create request URL for all pets from the shelter
-		$request_url = 'http://api.petfinder.com/shelter.getPets?key=' . $api_key . '&count=' . $count . '&id=' . $shelter_id . '&status=A&output=full';
+		$request_url = 'http://api.petfinder.com/shelter.getPets?key=' . $api_key . '&count=' . $count . '&id=' . $shelter_id . '&offset=' . $offset . '&status=A&output=full';
 	}
 
 	// If a specific pet IS specified
@@ -433,9 +433,11 @@ function get_age_list($pets) {
 	$ages = '';
 	$age_list = '';
 
-	// Create a list of pet ages
-	foreach( $pets as $pet ) {
-		$ages .= get_pet_age($pet->age) . "|";
+	foreach ( $petfinder_data as $key => $data ) {
+		$pets = $data->pets->pet;
+		foreach( $pets as $pet ) {
+			$ages .= get_pet_age($pet->age) . "|";
+		}
 	}
 
 	// Remove duplicates, convert into an array and reverse list order
@@ -880,7 +882,7 @@ function display_petfinder_list($atts) {
 
 		// Access Petfinder Data
 		$pet_id = $_GET['id'];
-		$petfinder_data = get_petfinder_data($api_key, $shelter_id, $count, $pet_id);
+		$petfinder_data = get_petfinder_data($api_key, $shelter_id, $count, $pet_id, 0);
 
 		// If the API returns without errors
 		if( $petfinder_data->header->status->code == '100' ) {
@@ -906,15 +908,19 @@ function display_petfinder_list($atts) {
 	else {
 
 		// Access Petfinder Data
-		$petfinder_data = get_petfinder_data($api_key, $shelter_id, $count);
+		$divisor = ceil( $count / 25 );
+		$petfinder_data = array();
+		for ( $loop = 0, $offset = 0; $loop < $divisor; $loop++, $offset = $offset + 25 ) {
+			$petfinder_data[] = get_petfinder_data( $api_key, $shelter_id, '25', '', $offset );
+		}
 
 		// If the API returns without errors
-		if( $petfinder_data->header->status->code == '100' ) {
+		if( $petfinder_data[0]->header->status->code == '100' ) {
 
 			// If there is at least one animal
-			if( count( $petfinder_data->pets->pet ) > 0 ) {
+			if( count( $petfinder_data[0]->pets->pet ) > 0 ) {
 
-				$pets = $petfinder_data->pets->pet;
+				$pets = $petfinder_data[2]->pets->pet;
 
 				// Compile information that you want to include
 				$petfinder_list =   '<h1 class="text-center">Our Dogs</h1>
