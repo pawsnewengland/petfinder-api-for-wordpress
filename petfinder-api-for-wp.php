@@ -232,6 +232,7 @@ function get_pet_name($pet_name) {
 	$pet_name = strtolower($pet_name); // Transform names to lowercase
 	$pet_name = ucwords($pet_name); // Capitalize the first letter of each name
 	$pet_name = array_shift(explode('Local', $pet_name)); // Remove 'Local' from animal names
+	$pet_name = trim($pet_name); // Remove trailing whitespace
 	// $pet_name_scrub = array('Local' => ''); // Define strings to remove
 	// $pet_name = strtr($pet_name, $pet_name_scrub); // Remove strings
 
@@ -852,7 +853,8 @@ function get_one_pet($pet) {
 								</div>
 								<p class="text-center">
 									<a class="modal-toggle" data-target="#more-photos" href="' . $pet_photos_url . '">
-										<i class="icon-photos"></i> View All/Larger
+										<svg class="icon" role="presentation"><use xlink:href="#images"></use></svg>
+										View All/Larger
 									</a>
 								</p>
 							</div>
@@ -905,7 +907,7 @@ function display_petfinder_list($atts) {
 	extract(shortcode_atts(array(
 		'api_key' => '',
 		'shelter_id' => '',
-		'count' => '20'
+		'count' => '25'
 	), $atts));
 
 	// Define variables
@@ -916,7 +918,7 @@ function display_petfinder_list($atts) {
 
 		// Access Petfinder Data
 		$pet_id = $_GET['id'];
-		$petfinder_data = get_petfinder_data($api_key, $shelter_id, $count, $pet_id, 0);
+		$petfinder_data = get_petfinder_data($api_key, $shelter_id, '1', $pet_id, 0);
 
 		// If the API returns without errors
 		if( $petfinder_data->header->status->code == '100' ) {
@@ -964,7 +966,6 @@ function display_petfinder_list($atts) {
 									<div class="hide-js">
 										<p>Your perfect companion could be just a click away. Click on a dog to learn more.</p>
 									</div>
-									<p><a class="btn collapse-toggle" data-target="#sort-options" href="#"><i class="icon-filter"></i> Filter Results +</a></p>
 									<div class="collapse hide-no-js" id="sort-options">
 
 										<div class="row">' .
@@ -983,6 +984,14 @@ function display_petfinder_list($atts) {
 										'</div>
 
 									</div>
+									<p>
+										<a class="btn collapse-toggle" data-collapse="#sort-options" href="#">
+											<svg class="icon" role="presentation"><use xlink:href="#filter"></use></svg>
+											Filter Results
+											<span class="collapse-text-show">+</span>
+											<span class="collapse-text-hide">&ndash;</span>
+										</a>
+									</p>
 
 									<div class="row" data-right-height>' .
 										get_all_pets($petfinder_data) .
