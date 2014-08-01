@@ -5,7 +5,7 @@
 	Plugin Name: Petfinder API for WordPress
 	Plugin URI: https://github.com/cferdinandi/petfinder-api-for-wordpress
 	Description: A collection of functions to help you display Petfinder listings on your WordPress site
-	Version: 5.0
+	Version: 5.1.0
 	Author: Chris Ferdinandi
 	Author URI: http://gomakethings.com
 	License: MIT
@@ -821,7 +821,6 @@ function get_one_pet($pet) {
 		$pet_options = '<p><em>' . $pet_options . '</em></p>';
 	}
 
-
 	if ( isset( $_GET['photos'] ) && $_GET['photos'] == 'all' ) {
 		$pet_info =    '<div class="row text-center">
 							<div class="grid-4 offset-1">
@@ -834,31 +833,12 @@ function get_one_pet($pet) {
 
 	else {
 		// Compile pet info
-		$pet_info =    '<div class="row">
-							<h1 class="text-center no-space-bottom">' . $pet_name . '</h1>
-							<p class="text-center"><a href="' . get_permalink() . '">&larr; Back to all dogs</a></p>
-							<div class="grid-2">
-								<div class="row">
-									<div class="grid-half">
-									   <p class="no-space-bottom" id="slide-nav-' . $pet_id . '"></p>
-									</div>
-									<div class="grid-half text-right">
-									   <p class="space-bottom-small" id="slide-count-' . $pet_id . '"></p>
-									</div>
-								</div>
-								<div class="slider" data-slider="' . $pet_id . '">
-									<div class="slides">' .
-										get_pet_photos($pet, 'large', false, '<div>', '</div>') .
-									'</div>
-								</div>
-								<p class="text-center">
-									<a class="modal-toggle" data-target="#more-photos" href="' . $pet_photos_url . '">
-										<svg class="icon" role="presentation"><use xlink:href="#images"></use></svg>
-										View All/Larger
-									</a>
-								</p>
-							</div>
-							<div class="grid-4">
+		$pet_info =    '<h1 class="text-center no-space-bottom">' . $pet_name . '</h1>
+						<p class="text-center"><a href="' . get_permalink() . '">&larr; Back to all dogs</a></p>
+						<div class="pet-img-main text-center" data-pet-img-main></div>
+						<div class="row">
+							<div class="grid-4 offset-1">
+								<div class="pet-img-thumbs text-center group">' . get_pet_photos($pet, 'large', false, '<div class="pet-img-thumb"><a data-pet-img-toggle href="' . $pet_photos_url . '">', '</div>') . '</a></div>
 								<div class="row">
 									<div class="grid-half">
 										<p>
@@ -879,12 +859,7 @@ function get_one_pet($pet) {
 								<a class="btn adopt-toggle" data-name="' . $pet_name . ' (ID#: ' . $pet_id . ')' . '" href="' . site_url() . '/adoption-form/">Fill Out an Adoption Form</a>
 							</p>' .
 							$pet_description .
-						'</div>
-						<div class="modal modal-medium text-center" id="more-photos">
-							<h2>Photos of ' . $pet_name . '<a class="close modal-close">x</a></h2>' .
-							get_pet_photos($pet, 'large', false, '<p>', '</p>') .
-							'<p><button class="btn modal-close">Close</button></p>
-						</div>';
+						'</div><div class="group"></div>';
 	}
 
 	// Return pet info
