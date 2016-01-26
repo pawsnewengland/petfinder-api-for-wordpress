@@ -1,4 +1,6 @@
-# Petfinder API for WordPress
+# [DEPRECATED] Petfinder API for WordPress
+
+***Note:*** *This plugin has been deprecated is no longer supported.*
 
 Petfinder for WordPress is a set of functions that makes it easy to import and work with data from Petfinder:
 
